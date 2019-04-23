@@ -49,6 +49,45 @@ extern char *endcode;
 ]
 */
 
+// Escape JSON strings following spec https://tools.ietf.org/html/rfc8259
+void json_escape(FILE *fd, char *s)
+{
+  for(;*s;s++) {
+    switch(*s) {
+      case 34: // ["] Quotation mark
+        fputs("\\\"", fd);
+        break;
+      case 92: // [\] Reverse solidus
+        fputs("\\\\", fd);
+        break;
+      // char 47 [/] solidus: not needed, can't be a filename
+      case 8: // [b] Backspace
+        fputs("\\b", fd);
+        break;
+      case 12: // [f] Form feed
+        fputs("\\f", fd);
+        break;
+      case 10: // [n] Line feed
+        fputs("\\n", fd);
+        break;
+      case 13: // [r] Carriage return
+        fputs("\\r", fd);
+        break;
+      case 9: // [t] Tab
+        fputs("\\t", fd);
+        break;
+      case 1 ... 7:
+      case 11:
+      case 14 ... 31: // [u + 4 hexadecimal digits] Control characters U+0000 to U+001F (except already escaped)
+        fprintf(fd, "\\u%04x", *s);
+        break;
+      default:
+	      fputc(*s, fd);
+	      break;
+    }
+  }
+}
+
 off_t json_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
 {
   char *path;
@@ -116,12 +155,12 @@ off_t json_listdir(char *d, int *dt, int *ft, u_long lev, dev_t dev)
     }
 
     fprintf(outfile, ",\"name\":\"");
-    html_encode(outfile,path);
+    json_escape(outfile,path);
     fputc('"',outfile);
 
     if ((*dir)->lnk) {
       fprintf(outfile, ",\"target\":\"");
-      html_encode(outfile,(*dir)->lnk);
+      json_escape(outfile,(*dir)->lnk);
       fputc('"',outfile);
     }
     json_fillinfo(*dir);
@@ -229,12 +268,12 @@ void jsonr_listdir(struct _info **dir, char *d, int *dt, int *ft, u_long lev)
     }
 
     fprintf(outfile, ",\"name\":\"");
-    html_encode(outfile,path);
+    json_escape(outfile,path);
     fputc('"',outfile);
 
     if ((*dir)->lnk) {
       fprintf(outfile, ",\"target\":\"");
-      html_encode(outfile,(*dir)->lnk);
+      json_escape(outfile,(*dir)->lnk);
       fputc('"',outfile);
     }
 
