@@ -1,3 +1,6 @@
+Version 1.8.1-unofficial (04/23/2019)
+  - Fixed JSON strings so it follows the rfc8259 spec.
+
 Version 1.8.0 (11/16/2018)
   - Added an experimental --fromfile option (suggested by several people.)
     This may eventually be replaced or supplimented by a --fromjson option.
